@@ -116,8 +116,8 @@ else if consecutiveBearish >= confirmationCandles
 // VISUALIZATION
 // =============================================================================
 
-// Determine candle color based on confirmed trend
-candleColor = confirmedTrend ? bullishColor : bearishColor
+// Determine candle color based on RAW direction (immediate, not confirmed)
+candleColor = rawIsBullish ? bullishColor : bearishColor
 
 // Plot the smoothed Heiken Ashi candles
 plotcandle(
@@ -135,13 +135,15 @@ plotcandle(
 // TREND INFORMATION (optional - for debugging or additional analysis)
 // =============================================================================
 
-// Export confirmed trend state for use in other indicators or strategies
-bool isBullish = confirmedTrend
-bool isBearish = not confirmedTrend
+// Export both raw and confirmed trend states
+bool isBullish = rawIsBullish  // Immediate direction
+bool isBullishConfirmed = confirmedTrend  // Confirmed after N candles
+bool isBearish = rawIsBearish  // Immediate direction
+bool isBearishConfirmed = not confirmedTrend  // Confirmed after N candles
 
-// Plot trend background (very subtle) based on CONFIRMED trend
+// Plot trend background (very subtle) based on RAW trend for consistency with candle colors
 bgcolor(
-     confirmedTrend ? color.new(bullishColor, 97) : color.new(bearishColor, 97),
+     rawIsBullish ? color.new(bullishColor, 97) : color.new(bearishColor, 97),
      title = "Trend Background"
  )
 

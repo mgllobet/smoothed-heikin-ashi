@@ -68,31 +68,39 @@ Regular OHLC → EMA Smoothing → Heiken Ashi Calculation → EMA Smoothing →
 
 ### Confirmation Candles Feature
 
-The **Confirmation Candles** parameter is a key feature that prevents premature trend changes during minor corrections:
+The **Confirmation Candles** parameter controls when trend confirmation arrows appear, helping you distinguish between temporary corrections and real trend changes:
 
 **How it works:**
-- Set to `1`: Immediate color change (default, most responsive)
-- Set to `2`: Requires 2 consecutive opposite candles before confirming trend change
-- Set to `3`: Requires 3 consecutive opposite candles (recommended for most users)
-- Higher values: More filtering, but increased lag
+- **Candle colors**: Always show immediate direction (finalClose > finalOpen)
+- **Confirmation arrows**: Only appear after N consecutive candles in the same direction
+- Set to `1`: Arrow appears immediately with each color change (no filtering)
+- Set to `3`: Arrow appears only after 3 consecutive candles (recommended)
+- Higher values: More conservative confirmations
 
 **Example with Confirmation Candles = 3:**
 ```
-Current trend: GREEN (bullish)
-Bar 1: RED candle appears → stays GREEN (1/3)
-Bar 2: RED candle appears → stays GREEN (2/3)
-Bar 3: RED candle appears → changes to RED (3/3 - CONFIRMED!)
+Previous confirmed trend: GREEN ▲
+
+Bar 1: RED candle (shows red, no arrow) → possible correction, wait...
+Bar 2: RED candle (shows red, no arrow) → still unconfirmed, wait...
+Bar 3: RED candle (shows red, WITH arrow ▼) → TREND CHANGE CONFIRMED!
 ```
 
-**Benefits:**
-- ✅ Filters out noise from small corrections
-- ✅ Reduces false signals in choppy markets
-- ✅ Keeps you in trends longer
-- ✅ Avoids premature exits during pullbacks
+**Visual interpretation:**
+- **Candles change color without arrow**: Temporary correction/noise
+- **Candles + confirmation arrow**: Legitimate trend change
+- **3+ consecutive candles without arrow**: Build-up to confirmation
 
-**Trade-off:**
-- ⚠️ Increases lag when real trend changes occur
-- ⚠️ May miss quick reversals
+**Benefits:**
+- ✅ See immediate price action (candle colors)
+- ✅ Identify confirmed trends (arrows)
+- ✅ Distinguish corrections from reversals
+- ✅ Avoid overtrading on noise
+
+**Use cases:**
+- Wait for arrow before entering trades (conservative)
+- Use candle colors for exits (responsive)
+- Combine both for sophisticated trade management
 
 ### Recommended Settings
 
