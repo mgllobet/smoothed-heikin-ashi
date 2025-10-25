@@ -40,6 +40,14 @@ bearishColor = input.color(
      inline = "colors"
  )
 
+confirmationCandles = input.int(
+     1,
+     "Confirmation Candles",
+     minval = 1,
+     maxval = 10,
+     tooltip = "Number of consecutive opposite-color candles required before trend change is confirmed. Higher values reduce false signals but increase lag."
+ )
+
 // =============================================================================
 // FIRST SMOOTHING - Apply EMA to regular OHLC
 // =============================================================================
@@ -78,11 +86,38 @@ finalHigh = ta.ema(heikenAshiHigh, secondSmoothingLength)
 finalLow = ta.ema(heikenAshiLow, secondSmoothingLength)
 
 // =============================================================================
+// CONFIRMATION LOGIC - Require N consecutive candles before trend change
+// =============================================================================
+
+// Determine raw direction from candle
+bool rawIsBullish = finalClose > finalOpen
+bool rawIsBearish = finalClose < finalOpen
+
+// Track consecutive candle counts
+var int consecutiveBullish = 0
+var int consecutiveBearish = 0
+var bool confirmedTrend = true  // true = bullish, false = bearish
+
+// Count consecutive candles in each direction
+if rawIsBullish
+    consecutiveBullish += 1
+    consecutiveBearish := 0
+else if rawIsBearish
+    consecutiveBearish += 1
+    consecutiveBullish := 0
+
+// Change confirmed trend only when threshold is reached
+if consecutiveBullish >= confirmationCandles
+    confirmedTrend := true
+else if consecutiveBearish >= confirmationCandles
+    confirmedTrend := false
+
+// =============================================================================
 // VISUALIZATION
 // =============================================================================
 
-// Determine candle color based on direction
-candleColor = finalOpen > finalClose ? bearishColor : bullishColor
+// Determine candle color based on confirmed trend
+candleColor = confirmedTrend ? bullishColor : bearishColor
 
 // Plot the smoothed Heiken Ashi candles
 plotcandle(
@@ -100,12 +135,31 @@ plotcandle(
 // TREND INFORMATION (optional - for debugging or additional analysis)
 // =============================================================================
 
-// Export trend state for use in other indicators or strategies
-bool isBullish = finalClose > finalOpen
-bool isBearish = finalClose < finalOpen
+// Export confirmed trend state for use in other indicators or strategies
+bool isBullish = confirmedTrend
+bool isBearish = not confirmedTrend
 
-// Plot trend background (very subtle)
+// Plot trend background (very subtle) based on CONFIRMED trend
 bgcolor(
-     isBullish ? color.new(bullishColor, 97) : color.new(bearishColor, 97),
+     confirmedTrend ? color.new(bullishColor, 97) : color.new(bearishColor, 97),
      title = "Trend Background"
+ )
+
+// Optional: Plot small markers when trend confirmation happens
+plotshape(
+     confirmedTrend and confirmedTrend[1] == false ? true : na,
+     title = "Bullish Confirmation",
+     style = shape.triangleup,
+     location = location.belowbar,
+     color = bullishColor,
+     size = size.tiny
+ )
+
+plotshape(
+     not confirmedTrend and confirmedTrend[1] == true ? true : na,
+     title = "Bearish Confirmation",
+     style = shape.triangledown,
+     location = location.abovebar,
+     color = bearishColor,
+     size = size.tiny
  )

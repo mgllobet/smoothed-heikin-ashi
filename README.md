@@ -15,7 +15,9 @@ The result is a highly smoothed visualization that makes trend identification ea
 ## Features
 
 - **Double smoothing**: Combines EMA smoothing with Heiken Ashi for maximum noise reduction
+- **Confirmation filter**: Requires N consecutive candles before confirming trend changes (reduces false signals)
 - **Customizable periods**: Adjust both smoothing lengths to match your trading style
+- **Visual confirmation markers**: Small triangles appear when trend changes are confirmed
 - **Color customization**: Choose your preferred bullish and bearish colors
 - **Trend background**: Subtle background color indicates current trend direction
 - **Clean code**: Written in Pine Script v5 with clear documentation
@@ -35,14 +37,15 @@ Heiken Ashi candles are calculated as:
 This indicator adds two EMA smoothing layers:
 
 ```
-Regular OHLC → EMA Smoothing → Heiken Ashi Calculation → EMA Smoothing → Final Candles
+Regular OHLC → EMA Smoothing → Heiken Ashi Calculation → EMA Smoothing → Confirmation Filter → Final Candles
 ```
 
 **Benefits:**
 - Removes short-term volatility
 - Makes trend reversals more visible
-- Reduces false signals
+- Reduces false signals with confirmation filter
 - Creates cleaner sequences of same-colored candles
+- Filters out noise from minor corrections
 
 ## Installation
 
@@ -59,26 +62,65 @@ Regular OHLC → EMA Smoothing → Heiken Ashi Calculation → EMA Smoothing →
 |-----------|---------|-------|-------------|
 | First Smoothing Length | 10 | 1-100 | EMA period applied to OHLC before Heiken Ashi calculation |
 | Second Smoothing Length | 10 | 1-100 | EMA period applied to Heiken Ashi candles |
+| **Confirmation Candles** | **1** | **1-10** | **Number of consecutive opposite-color candles required before trend change is confirmed** |
 | Bullish Color | Lime | - | Color for uptrend candles |
 | Bearish Color | Red | - | Color for downtrend candles |
+
+### Confirmation Candles Feature
+
+The **Confirmation Candles** parameter is a key feature that prevents premature trend changes during minor corrections:
+
+**How it works:**
+- Set to `1`: Immediate color change (default, most responsive)
+- Set to `2`: Requires 2 consecutive opposite candles before confirming trend change
+- Set to `3`: Requires 3 consecutive opposite candles (recommended for most users)
+- Higher values: More filtering, but increased lag
+
+**Example with Confirmation Candles = 3:**
+```
+Current trend: GREEN (bullish)
+Bar 1: RED candle appears → stays GREEN (1/3)
+Bar 2: RED candle appears → stays GREEN (2/3)
+Bar 3: RED candle appears → changes to RED (3/3 - CONFIRMED!)
+```
+
+**Benefits:**
+- ✅ Filters out noise from small corrections
+- ✅ Reduces false signals in choppy markets
+- ✅ Keeps you in trends longer
+- ✅ Avoids premature exits during pullbacks
+
+**Trade-off:**
+- ⚠️ Increases lag when real trend changes occur
+- ⚠️ May miss quick reversals
 
 ### Recommended Settings
 
 **For Swing Trading (Daily/4H charts):**
 - First Smoothing: 10-14
 - Second Smoothing: 10-14
+- Confirmation Candles: 2-3
 
 **For Day Trading (1H/30m charts):**
 - First Smoothing: 5-8
 - Second Smoothing: 5-8
+- Confirmation Candles: 2-3
 
 **For Scalping (5m/1m charts):**
 - First Smoothing: 3-5
 - Second Smoothing: 3-5
+- Confirmation Candles: 1-2 (stay responsive)
 
 **For Long-term Trend Analysis:**
 - First Smoothing: 14-21
 - Second Smoothing: 14-21
+- Confirmation Candles: 3-5 (higher filtering)
+
+**For Choppy/Ranging Markets:**
+- Increase Confirmation Candles to 4-5 to avoid whipsaws
+
+**For Strong Trending Markets:**
+- Keep Confirmation Candles at 1-2 for faster entries
 
 ## Trading Signals
 
