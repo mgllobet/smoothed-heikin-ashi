@@ -145,21 +145,25 @@ bgcolor(
      title = "Trend Background"
  )
 
-// Optional: Plot small markers when trend confirmation happens
+// Detect when confirmation just completed (counter just reached threshold)
+bool bullishJustConfirmed = consecutiveBullish == confirmationCandles and consecutiveBullish[1] == confirmationCandles - 1
+bool bearishJustConfirmed = consecutiveBearish == confirmationCandles and consecutiveBearish[1] == confirmationCandles - 1
+
+// Plot markers when confirmation threshold is reached
 plotshape(
-     confirmedTrend and confirmedTrend[1] == false ? true : na,
+     bullishJustConfirmed,
      title = "Bullish Confirmation",
      style = shape.triangleup,
      location = location.belowbar,
      color = bullishColor,
-     size = size.tiny
+     size = size.small
  )
 
 plotshape(
-     not confirmedTrend and confirmedTrend[1] == true ? true : na,
+     bearishJustConfirmed,
      title = "Bearish Confirmation",
      style = shape.triangledown,
      location = location.abovebar,
      color = bearishColor,
-     size = size.tiny
+     size = size.small
  )
