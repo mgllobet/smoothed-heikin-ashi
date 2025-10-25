@@ -1,0 +1,111 @@
+// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © smoothed-heikin-ashi contributors
+
+//@version=5
+indicator(
+     "Smoothed Heiken Ashi",
+     shorttitle = "Smoothed HA",
+     overlay = true
+ )
+
+// =============================================================================
+// INPUTS
+// =============================================================================
+
+firstSmoothingLength = input.int(
+     10,
+     "First Smoothing Length",
+     minval = 1,
+     maxval = 100,
+     tooltip = "EMA period applied to OHLC before calculating Heiken Ashi"
+ )
+
+secondSmoothingLength = input.int(
+     10,
+     "Second Smoothing Length",
+     minval = 1,
+     maxval = 100,
+     tooltip = "EMA period applied to Heiken Ashi candles for additional smoothing"
+ )
+
+bullishColor = input.color(
+     color.new(color.lime, 0),
+     "Bullish Color",
+     inline = "colors"
+ )
+
+bearishColor = input.color(
+     color.new(color.red, 0),
+     "Bearish Color",
+     inline = "colors"
+ )
+
+// =============================================================================
+// FIRST SMOOTHING - Apply EMA to regular OHLC
+// =============================================================================
+
+smoothedOpen = ta.ema(open, firstSmoothingLength)
+smoothedClose = ta.ema(close, firstSmoothingLength)
+smoothedHigh = ta.ema(high, firstSmoothingLength)
+smoothedLow = ta.ema(low, firstSmoothingLength)
+
+// =============================================================================
+// HEIKEN ASHI CALCULATION on smoothed values
+// =============================================================================
+
+// Heiken Ashi Close = average of OHLC
+heikenAshiClose = (smoothedOpen + smoothedHigh + smoothedLow + smoothedClose) / 4
+
+// Heiken Ashi Open = average of previous HA open and close
+var float heikenAshiOpen = na
+heikenAshiOpen := na(heikenAshiOpen[1])
+     ? (smoothedOpen + smoothedClose) / 2
+     : (heikenAshiOpen[1] + heikenAshiClose[1]) / 2
+
+// Heiken Ashi High = maximum of high, HA open, and HA close
+heikenAshiHigh = math.max(smoothedHigh, math.max(heikenAshiOpen, heikenAshiClose))
+
+// Heiken Ashi Low = minimum of low, HA open, and HA close
+heikenAshiLow = math.min(smoothedLow, math.min(heikenAshiOpen, heikenAshiClose))
+
+// =============================================================================
+// SECOND SMOOTHING - Apply EMA to Heiken Ashi candles
+// =============================================================================
+
+finalOpen = ta.ema(heikenAshiOpen, secondSmoothingLength)
+finalClose = ta.ema(heikenAshiClose, secondSmoothingLength)
+finalHigh = ta.ema(heikenAshiHigh, secondSmoothingLength)
+finalLow = ta.ema(heikenAshiLow, secondSmoothingLength)
+
+// =============================================================================
+// VISUALIZATION
+// =============================================================================
+
+// Determine candle color based on direction
+candleColor = finalOpen > finalClose ? bearishColor : bullishColor
+
+// Plot the smoothed Heiken Ashi candles
+plotcandle(
+     finalOpen,
+     finalHigh,
+     finalLow,
+     finalClose,
+     title = "Smoothed Heiken Ashi",
+     color = candleColor,
+     wickcolor = candleColor,
+     bordercolor = candleColor
+ )
+
+// =============================================================================
+// TREND INFORMATION (optional - for debugging or additional analysis)
+// =============================================================================
+
+// Export trend state for use in other indicators or strategies
+bool isBullish = finalClose > finalOpen
+bool isBearish = finalClose < finalOpen
+
+// Plot trend background (very subtle)
+bgcolor(
+     isBullish ? color.new(bullishColor, 97) : color.new(bearishColor, 97),
+     title = "Trend Background"
+ )
